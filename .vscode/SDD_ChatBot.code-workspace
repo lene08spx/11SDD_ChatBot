@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "C:\\Users\\LENE08\\OneDrive - St Pius X College\\2019\\Software\\2019_T1_TASK_SDD_ChatBot"
+		}
+	],
+	"settings": {
+		"typescript.tsdk": "node_modules\\typescript\\lib"
+	}
+}
