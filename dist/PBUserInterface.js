@@ -54,3 +54,23 @@ class PBUserInterface {
 }
 exports.PBUserInterface = PBUserInterface;
 exports.default = PBUserInterface;
+/*
+// YAY!!!
+let list = ["I am ok", "yes I am","yes","ok"]
+let results = FuzzBall.extract("yes I am ok", list);
+console.log(results);
+// [ 'baconing', 'a mighty bear canoe' ]
+*/
+/*
+function getInput(question: string): Promise<string> {
+    return new Promise<string>( resolve => {
+        let rl = Readline.createInterface(process.stdin, process.stdout);
+        rl.setPrompt(question);
+        rl.prompt();
+        rl.on("line", userInput => {
+            console.log("IP:",userInput);
+            rl.close();
+            resolve(userInput);
+        });
+    })
+}*/

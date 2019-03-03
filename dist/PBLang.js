@@ -11,7 +11,12 @@ const PBLanguage = {
             "noOrder": "That's okay. I can help you anytime.",
             "goodbye": "Thank You, Have a nice day.",
             "orderIntent": "Would you like to order some food now?",
-            "askName": "May I ask what is your name?"
+            "askName": "May I ask what is your name?",
+            "thankyou": "Thank you",
+            "helloUser": "G'Day {0}!",
+            "findingOrders": "Just gonna look up previous orders for ya! Won't be a second.",
+            "firstOrder": "It appears this is your first time ordering, {0}",
+            "ordersFound": "G'Day {0}. Here are you previous orders:"
         },
         "fuzzy": {
             "yes": ["yes please", "for sure", "sure", "sounds good", "yes", "yep", "bloody oath", "yea", "yes please"],

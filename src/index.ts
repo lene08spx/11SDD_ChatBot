@@ -1,10 +1,8 @@
 //@ts-check
-// Fuzzball :D
-// This handles the whole app
-import Readline from "readline";
-import FuzzBall from "fuzzball";
 import IBPubBot from "./IBPubBot";
-
-new IBPubBot("Murray","console","au").run();
-
-// const bot = new IBPubBot("Murray", *window, ?*tts, ?*speechrecog)
+import PBDatabse from "./PBDatabase";
+// FUTURE :: IBPubBot("Murray", *window, ?*tts, ?*speechrecog)
+new PBDatabse("./data/ironbarkpub.db", function (db){
+    // CREATE NEW BOTS DATA BASE INIT IMPORTANT
+    new IBPubBot("Murray","console",db,"au").run();
+});

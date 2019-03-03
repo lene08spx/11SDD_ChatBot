@@ -13,6 +13,7 @@ export declare interface PBUserInterface {
     input(question: string): Promise<string>;
     print(message: string): Promise<void>;
     intent(phrase: string, answers: Array<string>, threshold?: number): Promise<boolean>;
+    pin(message: string): Promise<void>;
 }
 export class PBUserInterface {
 
@@ -23,6 +24,7 @@ export class PBUserInterface {
             this.input = this._con_input;
             this.print = this._con_print;
             this.intent = this._con_intent;
+            this.pin = this._con_pin;
         }
         this.ttsEnabled = enableTTS;
     }
@@ -41,7 +43,7 @@ export class PBUserInterface {
                 rl.close();
                 resolve("");
             });
-        })
+        });
     }
 
     private _con_print(message: string): Promise<void> {
@@ -58,6 +60,13 @@ export class PBUserInterface {
                 if (fuz[0][1] >= threshold) resolve(true);
                 else resolve(false);
             }
+        });
+    }
+
+    private _con_pin(message: string): Promise<void> {
+        return new Promise<void>( resolve => {
+            console.log("PINNED",message);
+            resolve();
         });
     }
 }
