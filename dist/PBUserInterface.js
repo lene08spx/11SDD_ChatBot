@@ -10,15 +10,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const readline_1 = __importDefault(require("readline"));
 const fuzzball_1 = __importDefault(require("fuzzball"));
 class PBUserInterface {
-    constructor(type, enableTTS = false) {
-        if (type === "console") {
-            this.input = this._con_input;
-            this.print = this._con_print;
-            this.intent = this._con_intent;
-        }
-        this.ttsEnabled = enableTTS;
+    constructor() {
+        this.ttsEnabled = false;
+        this._pinnedMessages = [];
+        /*
+        public pin(message: string): Promise<void> {
+            return new Promise<void>( resolve => {
+                console.log("PINNED",message);
+                resolve();
+            });
+        }*/
     }
-    _con_input(question) {
+    input(question) {
         return new Promise(resolve => {
             let rl = readline_1.default.createInterface(process.stdin, process.stdout);
             rl.setPrompt(question + " : ");
@@ -34,13 +37,10 @@ class PBUserInterface {
             });
         });
     }
-    _con_print(message) {
-        return new Promise(resolve => {
-            console.log(message);
-            resolve();
-        });
+    print(message) {
+        console.log(message);
     }
-    _con_intent(phrase, answers, threshold = 50) {
+    intent(phrase, answers, threshold = 50) {
         return new Promise(resolve => {
             let fuz = fuzzball_1.default.extract(phrase, answers);
             if (fuz[0]) {
@@ -50,6 +50,9 @@ class PBUserInterface {
                     resolve(false);
             }
         });
+    }
+    div() {
+        console.log("================================");
     }
 }
 exports.PBUserInterface = PBUserInterface;

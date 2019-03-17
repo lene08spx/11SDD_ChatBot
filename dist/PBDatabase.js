@@ -3,13 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+//@ts-check
 const sqlite3_1 = __importDefault(require("sqlite3"));
 class PBDatabase {
-    constructor(dbPath, readyCallback) {
+    constructor(dbPath, onReady) {
         this._db = new sqlite3_1.default.Database(dbPath, (err) => {
             if (err)
                 console.log("DB Error:", err);
-            readyCallback(this);
+            onReady(this);
         });
     }
     query(sql, ...params) {

@@ -15,8 +15,8 @@ const PBLanguage = {
             "thankyou": "Thank you",
             "helloUser": "G'Day {0}!",
             "findingOrders": "Just gonna look up previous orders for ya! Won't be a second.",
-            "firstOrder": "It appears this is your first time ordering, {0}",
-            "ordersFound": "G'Day {0}. Here are you previous orders:"
+            "firstOrder": "It appears this is your first time ordering.",
+            "ordersFound": "Here are you previous orders:"
         },
         "fuzzy": {
             "yes": ["yes please", "for sure", "sure", "sounds good", "yes", "yep", "bloody oath", "yea", "yes please"],
@@ -24,7 +24,20 @@ const PBLanguage = {
         },
         "words": {
             "myName": "My name is",
-            "steak": "steak"
+            "steak": "steak",
+            "chips": "Chips",
+            "fishfingers": "Fish Fingers",
+            "batteredfish": "Battered Fish and Chips",
+            "schnitzel": "Chicken Schnitzel",
+            "water": "Bottle of Water",
+            "lemonade": "Lemonade",
+            "cocacola": "Coca Cola",
+            "orangejuice": "Orange Juice",
+            "applejuice": "Apple Juice",
+            "icecream": "Bowl of Ice Cream",
+            "milkshake": "Milkshake",
+            "stickydate": "Sticky Date Pudding",
+            "fruitsaladicecream": "Fruit Salad Ice Cream"
         }
     }
 };

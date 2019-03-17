@@ -3,33 +3,15 @@
 // UserInterface CODE
 //
 
-import * as PB from "./PBTypes";
-import PBLanguage from "./PBLang";
-
 import Readline from "readline";
 import Fuzzball from "fuzzball";
 
-export declare interface PBUserInterface {    
-    input(question: string): Promise<string>;
-    print(message: string): Promise<void>;
-    intent(phrase: string, answers: Array<string>, threshold?: number): Promise<boolean>;
-    pin(message: string): Promise<void>;
-}
 export class PBUserInterface {
 
-    public readonly ttsEnabled: boolean;
+    public readonly ttsEnabled: boolean = false;
+    private _pinnedMessages: string[] = [];
 
-    constructor (type: PB.PBUITypes, enableTTS: boolean = false) {
-        if (type === "console") {
-            this.input = this._con_input;
-            this.print = this._con_print;
-            this.intent = this._con_intent;
-            this.pin = this._con_pin;
-        }
-        this.ttsEnabled = enableTTS;
-    }
-
-    private _con_input(question: string) {
+    public input(question: string) {
         return new Promise<string>( resolve => {
             let rl = Readline.createInterface(process.stdin, process.stdout);
             rl.setPrompt(question+" : ");
@@ -46,14 +28,11 @@ export class PBUserInterface {
         });
     }
 
-    private _con_print(message: string): Promise<void> {
-        return new Promise<void>( resolve => {
-            console.log(message);
-            resolve();
-        });
+    public print(message: string): void {
+        console.log(message);
     }
 
-    private _con_intent(phrase: string, answers: Array<string>, threshold: number = 50): Promise<boolean> {
+    public intent(phrase: string, answers: Array<string>, threshold: number = 50): Promise<boolean> {
         return new Promise<boolean>( resolve => {
             let fuz = Fuzzball.extract(phrase, answers);
             if (fuz[0]) {
@@ -62,13 +41,18 @@ export class PBUserInterface {
             }
         });
     }
+    
+    public div(): void {
+        console.log("================================");
+    }
 
-    private _con_pin(message: string): Promise<void> {
+    /*
+    public pin(message: string): Promise<void> {
         return new Promise<void>( resolve => {
             console.log("PINNED",message);
             resolve();
         });
-    }
+    }*/
 }
 export default PBUserInterface;
 

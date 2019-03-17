@@ -1,8 +1,9 @@
 // @ts-check
-import * as PB from "./PBTypes";
-import PBDatabase from "./PBDatabase";
-import PBLanguage from "./PBLang";
-import PBUserInterface from "./PBUserInterface";
+import PBDatabase       from "./PBDatabase";
+import PBFuzzy          from "./PBFuzzy";
+import PBUserInterface  from "./PBUserInterface";
+import PBUser           from "./PBUser";
+import PBOrder          from "./PBOrder";
 
 /*
     BOT CODE
@@ -10,66 +11,122 @@ import PBUserInterface from "./PBUserInterface";
 
 export class IBPubBot {
 
-    public readonly langCode: PB.PBLangTypes;
     public readonly name: string;
     private _db: PBDatabase;
     private _hasRun: boolean = false;
     private _ui: PBUserInterface;
-    private _userName: string;
+    private _user: PBUser | null;
 
-    constructor ( name: string, userInterfaceType: PB.PBUITypes, database: PBDatabase, language: PB.PBLangTypes = "au" ) {
+    constructor ( name: string, database: PBDatabase ) {
         this.name = name;
-        this.langCode = language;
         this._db = database;
-        this._ui = new PBUserInterface(userInterfaceType);
-        this._userName = "{Username problem. Please report this error.}";
+        this._ui = new PBUserInterface();
+        this._user = null;
+        //this._user.name = "{Username problem. Please report this error.}";
     }
     
     public async run (): Promise<void> {
-        if (this._hasRun) return;
+        //================================
+        // check if the bot is already running
+        //================================
+        if (this._hasRun) throw "Bot Already Running";
         this._hasRun = true;
-        //this._userName = "";
-        //let userAnswer = "";
-        //let userIntent = true;
 
-        // Introduce the Assistant
-        await this._ui.print((PBLanguage[this.langCode]["speech"]["intro"]).replace("{0}",this.name));
+        //================================
+        // introduce the assistant
+        //================================
+        await this._ui.print(
+            "G'Day!, my name is {0}. Welcome to the Ironbark Pub food ordering service."
+            .replace("{0}",this.name)
+        );
 
-        // Get if the user wants to order.
-        if (!(await this._getOrderIntent())) {
-            // END SESSION
-            this._ui.print(PBLanguage[this.langCode]["speech"]["goodbye"]);
+        //================================
+        // get if the user wants to order
+        // if not end the session
+        //================================
+        if (!(await this._userWantsToOrder())) {
+            await this._ui.print(
+                "Thank You, Have a nice day."
+            );
             return;
         }
 
-        // Get user's name
-        this._userName = await this._getUserName();
+        //================================
+        // get the user's name
+        //================================
+        this._user = await this._getUser();
 
-        // Get Previous Orders
-        this._ui.print(PBLanguage[this.langCode]["speech"]["helloUser"].replace("{0}",this._userName));
-        let prevOrders = await this._getPreviousOrders(this._userName);
-        if (prevOrders === []) {
-            this._ui.print(PBLanguage[this.langCode]["speech"]["firstOrder"]);
+        //================================
+        // get previous orders
+        //================================
+        this._ui.div();
+        this._ui.print(
+            "G'Day {0}!"
+            .replace("{0}",this._user.prettyName)
+        );
+        let prevOrders = await this._getPreviousOrders(this._user.userID);
+        if (!prevOrders.length) {
+            this._ui.print(
+                "It appears this is your first time ordering."
+            );
         } else {
-            this._ui.print(PBLanguage[this.langCode]["speech"]["ordersFound"]);
+            this._ui.print(
+                "Here are you previous orders:"
+            );
+            for (let i=0; i<prevOrders.length; i++) {
+                let b = prevOrders[i].date.split(/\D+/).map(v=>{return Number(v)});
+                let orderDate = new Date(Date.UTC(b[0],--b[1],b[2],b[3],b[4],b[5],b[6]))
+                this._ui.div();
+                this._ui.print("Order No. "+String(i));
+                this._ui.print(" "+orderDate.toDateString()+" - "+this._timeAMPM(orderDate));
+                if (prevOrders[i].main) {
+                    this._ui.print(" Mains:                     Cost");
+                    for (let item of prevOrders[i].main) {
+                        this._ui.print("   "+PBOrder.PBMenu[item[0]]+"                           ".slice(PBOrder.PBMenu[item[0]].length)+String(item[1]));
+                    }
+                }
+                if (prevOrders[i].desert) {
+                    this._ui.print(" Desserts:                  Cost");
+                    for (let item of prevOrders[i].desert) {
+                        this._ui.print("   "+PBOrder.PBMenu[item[0]]+"                           ".slice(PBOrder.PBMenu[item[0]].length)+String(item[1]));
+                    }
+                }
+                if (prevOrders[i].drink) {
+                    this._ui.print(" Drinks:                    Cost");
+                    for (let item of prevOrders[i].drink) {
+                        this._ui.print("   "+PBOrder.PBMenu[item[0]]+"                           ".slice(PBOrder.PBMenu[item[0]].length)+String(item[1]));
+                    }
+                }
+                this._ui.print(" Total: $"+String(prevOrders[i].total));
+                this._ui.print("");
+            }
         }
-        console.log(prevOrders);
+
+        //================================
+        // get new orders
+        //================================
+        this._ui.div();
 
     }
 
-    private _getOrderIntent (): Promise<boolean> {
+    private _userWantsToOrder (): Promise<boolean> {
         return new Promise(async resolve => {
-            let userAnswer = await this._ui.input(PBLanguage[this.langCode]["speech"]["orderIntent"]);
-            let userIntent = await this._ui.intent(userAnswer,PBLanguage[this.langCode]["fuzzy"]["yes"]);
+            let userAnswer = await this._ui.input(
+                "Would you like to order some food now?"
+            );
+            let userIntent = await this._ui.intent(userAnswer,PBFuzzy.YES);
             if (!userIntent) {
-                //let userAnswer = await this._ui.input(PBLanguage[this.langCode]["speech"]["orderIntent"]);
-                userIntent = await this._ui.intent(userAnswer,PBLanguage[this.langCode]["fuzzy"]["no"]);
+                userIntent = await this._ui.intent(userAnswer,PBFuzzy.NO);
                 if (userIntent) {
-                    this._ui.print(PBLanguage[this.langCode]["speech"]["noOrder"]);
+                    this._ui.print(
+                        "That's okay. I can help you anytime."
+                    );
                     resolve(false);
                 } else {
-                    this._ui.print(PBLanguage[this.langCode]["speech"]["notUnderstood"]);
-                    if (!(await this._getOrderIntent())) {
+                    this._ui.print(
+                        "Sorry, I didn't understand that."
+                    );
+                    if (!(await this._userWantsToOrder())) {
                         resolve(false);
                     }
                 }
@@ -78,23 +135,30 @@ export class IBPubBot {
         });
     }
 
-    private _getUserName (): Promise<string> {
+    private _getUser (): Promise<PBUser> {
         return new Promise(async resolve => {
-            let userAnswer = await this._ui.input(PBLanguage[this.langCode]["speech"]["askName"]);
+            let userAnswer = await this._ui.input(
+                "May I ask what is your name?"
+            );
             while (
-                !userAnswer.toLowerCase().startsWith(PBLanguage[this.langCode]["words"]["myName"].toLowerCase())
-                || userAnswer.trim().toLowerCase() === PBLanguage[this.langCode]["words"]["myName"].toLowerCase())
-            {
+                !userAnswer.toLowerCase().startsWith("my name is")
+                || userAnswer.trim().toLowerCase() === "my name is"
+            ){
                 if (this._ui.ttsEnabled) {
-                    this._ui.print(PBLanguage[this.langCode]["speech"]["useMyNameTTS"].replace("{0}",PBLanguage[this.langCode]["words"]["myName"]));
+                    this._ui.print(
+                        "Sorry, to verify your name you must say \"My name is\" before your name."
+                    );
                 } else {
-                    this._ui.print(PBLanguage[this.langCode]["speech"]["useMyNameText"].replace("{0}",PBLanguage[this.langCode]["words"]["myName"]));
+                    this._ui.print(
+                        "Sorry, to verify your name you must type \"My name is\" before your name."
+                    );
                 }
-                userAnswer = await this._ui.input(PBLanguage[this.langCode]["speech"]["askName"]);
+                userAnswer = await this._ui.input(
+                    "May I ask what is your name?"
+                );
             };
-            let userNames = userAnswer.toLowerCase().replace(PBLanguage[this.langCode]["words"]["myName"].toLowerCase(), "").trim().split(" ");
-            let userName = userNames.map(value => {return value[0].toUpperCase()+value.slice(1)}).join(" ").trim();
-            resolve(userName);
+            let userName = userAnswer.slice(userAnswer.toLowerCase().indexOf("my name is")+10).trim();
+            resolve(new PBUser(userName));
         });
     }
 
@@ -111,7 +175,8 @@ export class IBPubBot {
             userName = userName.toLowerCase();
             
             let prevOrders = await this._db.query(`
-            SELECT Users.userId, UserOrders.orderId, Menu.itemType, Menu.itemId, Menu.itemCost, UserOrders.orderDate FROM Users, UserOrders, Orders, Menu
+            SELECT Users.userId, UserOrders.orderId, Menu.itemType, Menu.itemId, Menu.itemCost, UserOrders.orderDate
+            FROM Users, UserOrders, Orders, Menu
             WHERE (Users.userId = UserOrders.userId
             AND UserOrders.orderId = Orders.orderId
             AND Menu.itemId = Orders.itemId)
@@ -159,5 +224,14 @@ export class IBPubBot {
             resolve(ro);
         });
     }
+
+    private _timeAMPM (date: Date): string {
+        let hours = date.getHours();
+        let mins = date.getMinutes();
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return String(hours)+":"+('0'+String(mins)).slice(-2)+(hours>=12?'pm':'am');
+    }
+
 }
 export default IBPubBot;
