@@ -11,10 +11,10 @@ exports.PBUser = PBUser;
 ;
 var PBFuzzy;
 (function (PBFuzzy) {
-    PBFuzzy.MATCH_YES = ["yes please", "for sure", "sure", "sounds good", "yes", "yep", "bloody oath", "yea", "yes please", "okey dokey"];
-    PBFuzzy.MATCH_NO = ["nah", "no thanks", "nope", "nup", "no", "no way"];
-    PBFuzzy.MATCH_QUIT = ["quit", "stop", "halt", "exit", "end", "cancel"];
-    PBFuzzy.MATCH_MYNAME = ["my name is", "my name", "i am called", "i called", "je m'appelle", "i am"];
+    PBFuzzy.MATCH_YES = ["y", "yes please", "for sure", "sure", "sounds good", "yes", "yep", "bloody oath", "yea", "yes please", "okey dokey"];
+    PBFuzzy.MATCH_NO = ["n", "nah", "no thanks", "nope", "nup", "no", "no way"];
+    PBFuzzy.MATCH_QUIT = ["quit", "stop", "halt", "exit", "cancel"];
+    PBFuzzy.MATCH_MYNAME = ["my name is", "my name", "i am called", "i called", "i am", "je m'appelle", "Mi nombre", "Mi nombre es", "soy"];
 })(PBFuzzy = exports.PBFuzzy || (exports.PBFuzzy = {}));
 ;
 ;
@@ -50,40 +50,3 @@ class PBOrderArray extends Array {
     }
 }
 exports.PBOrderArray = PBOrderArray;
-/*
-class PBOrder {
-
-    public menuItems: menuItem[] = [];
-    public static PBMenu = PBMenu;
-
-    private _addItem(itemType: PBItemType) {
-        let item: menuItem = {
-            "itemName": "",
-            "itemType": itemType
-        }
-        this.menuItems.push(item);
-    }
-    public addMain() {}
-    public addDessert() {}
-    public addDrink() {}
-
-    private _getItems(itemType: PBItemType) {
-        let items: menuItem[] = [];
-        for (let i=0; i<this.menuItems.length; i++) {
-            if (this.menuItems[i].itemType === itemType) {
-                items.push(this.menuItems[i]);
-            }
-        }
-        return items;
-    }
-    public getMain() { this._getItems("main"); }
-    public getDessert() { this._getItems("dessert"); }
-    public getDrink() { this._getItems("drink"); }
-}
-
-interface menuItem {
-    itemId: string;
-}
-
-export default PBOrder;
-*/ 

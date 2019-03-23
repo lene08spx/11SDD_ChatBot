@@ -22,7 +22,7 @@ export class IBPubBot {
         this._user = null;
         //this._user.name = "{Username problem. Please report this error.}";
     }
-    
+
     public async run (): Promise<void> {
         //================================
         // check if the bot is already running
@@ -53,7 +53,7 @@ export class IBPubBot {
         // get the user's name
         //================================
         this._user = await this._getUser();
-        if (this._user === undefined) {
+        if (!this._user) {
             await this._ui.print(
                 "Thank You, Have a nice day."
             );
@@ -66,64 +66,45 @@ export class IBPubBot {
         // get previous orders
         //================================
         this._ui.div();
-        this._ui.print(
+        await this._ui.print(
             "G'Day {0}!"
             .replace("{0}",this._user.prettyName)
         );
         let prevOrders = await this._getOrders(this._user);
         if (!prevOrders.length) {
-            this._ui.print(
+            await this._ui.print(
                 "It appears this is your first time ordering."
             );
         } else {
-            this._ui.print(
-                "Here are you previous orders:"
+            await this._ui.print(
+                "Here are your previous orders:"
             );
-            for (let i=0; i<prevOrders.length; i++) {
-                this._ui.div();
-                this._ui.print("Order No. "+String(prevOrders[i].orderID));
-                this._ui.print(" "+this._fancyTime(new Date(prevOrders[i].date)));
-
-                this._ui.print("Courses:                Cost ($)");
-                this._ui.print(" Mains:");
-                for (let item of prevOrders[i].main) {
-                    this._ui.print("   "+item.name+"                        ".slice(item.name.length)+String(item.cost).padStart(5," "));
-                }
-                this._ui.print(" Desserts:");
-                for (let item of prevOrders[i].dessert) {
-                    this._ui.print("   "+item.name+"                        ".slice(item.name.length)+String(item.cost).padStart(5," "));
-                }
-                this._ui.print(" Drinks:");
-                for (let item of prevOrders[i].drink) {
-                    this._ui.print("   "+item.name+"                        ".slice(item.name.length)+String(item.cost).padStart(5," "));
-                }
-                this._ui.print("Total: $"+String(prevOrders[i].total));
-                this._ui.print("");
-            }
+            await this._printOrder(prevOrders);
         }
 
         //================================
         // get new orders
         //================================
         this._ui.div();
-
     }
 
-    private _userWantsToOrder (): Promise<boolean> {
+    private async _userWantsToOrder (): Promise<boolean> {
         return new Promise(async resolve => {
+            let thresh = 80;
             let userAnswer = await this._ui.input(
                 "Would you like to order some food now?"
             );
-            let userIntent = this._ui.intent(userAnswer,PBFuzzy.MATCH_YES);
+            userAnswer = userAnswer.toLowerCase();
+            let userIntent = this._ui.intent(userAnswer,PBFuzzy.MATCH_YES,thresh) || this._stringIncludesTextFromArray(userAnswer,PBFuzzy.MATCH_YES,70);
             if (!userIntent) {
-                userIntent = this._ui.intent(userAnswer,PBFuzzy.MATCH_NO);
+                userIntent = this._ui.intent(userAnswer,PBFuzzy.MATCH_NO,thresh) || this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT,thresh);
                 if (userIntent) {
-                    this._ui.print(
+                   await this._ui.print(
                         "That's okay. I can help you anytime."
                     );
                     resolve(false);
                 } else {
-                    this._ui.print(
+                   await this._ui.print(
                         "Sorry, I didn't understand that."
                     );
                     if (!(await this._userWantsToOrder())) {
@@ -135,45 +116,50 @@ export class IBPubBot {
         });
     }
 
-    private _getUser (): Promise<PBUser> | undefined {
-        try{
-        return new Promise(async resolve => {
-            let breakout = false;
-            let userAnswer = await this._ui.input(
-                "May I ask what is your name?"
-            );
+    private async _getUser (): Promise<PBUser | null> {
+        return new Promise<PBUser | null>(async resolve => {
+            let thresh = 80;
+            let userAnswer = (await this._ui.input(
+                "May I ask, what is your name?"
+            ));
+//            if (this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT),80) resolve(null);
             //this._stringIncludesTextFromArray(userAnswer,PBFuzzy.MATCH_MYNAME);
             //console.log(this._getNonFuzzyWords(userAnswer,PBFuzzy.MATCH_MYNAME));
             while (
-                !userAnswer.toLowerCase().startsWith("my name is")
-                || userAnswer.trim().toLowerCase() === "my name is"
-                || !new RegExp(PBFuzzy.MATCH_MYNAME.join("|")).test(userAnswer)
-                || !this._stringIncludesTextFromArray(userAnswer,PBFuzzy.MATCH_MYNAME)
+                !this._stringIncludesTextFromArray(userAnswer,PBFuzzy.MATCH_MYNAME,thresh)
+                || (!userAnswer.toLowerCase().startsWith("my name is")
+                && userAnswer.trim().toLowerCase() === "my name is"
+                && !new RegExp(PBFuzzy.MATCH_MYNAME.join("|")).test(userAnswer))
             ){
-                if (this._ui.intent(userAnswer,PBFuzzy.MATCH_NO)) {
-                    this._ui.print(
+                if (this._ui.intent(userAnswer,PBFuzzy.MATCH_NO, thresh)) {
+                   await this._ui.print(
                         "Sorry, I need to know your name in order to place your orders.\nIf you would like to cancel ordering, type \"cancel\"."
                     );
-                } else if (this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT)) {
-                    throw "quit_plz";
+                    userAnswer = (await this._ui.input(
+                        "May I ask, what is your name?"
+                    ));
+                } else if (this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT, thresh)) {
+                    resolve(null);
+                    break;
                 } else {
-                    this._ui.print(
+                   await this._ui.print(
                         "Sorry, I didn't understand that."
                     );
+                    userAnswer = (await this._ui.input(
+                        "May I ask, what is your name?"
+                    ));
                 }
                 //this._ui.print(
                 //    "Sorry, to verify your name you must type \"My name is\" before your name.\nIf you would like to cancel ordering, type \"cancel\"."
                 //);
-                userAnswer = await this._ui.input(
-                    "May I ask what is your name?"
-                );
+                //if (this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT), 80) resolve(null);
             };
             // user name pulled from fuzzy test on split
             //let userName = userAnswer.slice(userAnswer.toLowerCase().indexOf("my name is")+10).trim();
             let userName = this._getNonFuzzyWords(userAnswer,PBFuzzy.MATCH_MYNAME).join(" ");
+            //console.log("@@@",userName);
             resolve(new PBUser(userName));
         });
-        }catch(err){if(err==="quit_plz")return undefined};
     }
 
     private _getOrders (user: PBUser) {
@@ -217,24 +203,52 @@ export class IBPubBot {
     }
 
     // used to see if the user actually said something then else the bot didnt understand
-    private _stringIncludesTextFromArray(str: string, textArray: string[]) {
+    private _stringIncludesTextFromArray(str: string, textArray: string[], threshold = 50) {
         for (let i=0;i<str.split(" ").length;i++) {
-            if (this._ui.intent(str.split(" ").slice(0,i+1).join(" "), textArray)) return true;
+            if (this._ui.intent(str.split(" ").slice(0,i+1).join(" "), textArray,threshold)) return true;
         }
         return false;
     }
 
     private _getNonFuzzyWords(str: string, fuzzyArray: string[]) {
+        let thresh = 80;
         return str.split(" ").filter(v=>{
             let res = false;
             for (let fuzzWord of fuzzyArray) {
                 for (let f=0;f<fuzzWord.split(" ").length;f++) {
-                    if(this._ui.intent(v,[fuzzWord.split(" ").slice(0,fuzzWord.split(" ").length-f).join(" ")],80)) res = true;
-                    if(this._ui.intent(v,[fuzzWord.split(" ").slice(f).join(" ")],80)) res = true;
+                    if(this._ui.intent(v,[fuzzWord.split(" ").slice(0,fuzzWord.split(" ").length-f).join(" ")],thresh)) res = true;
+                    if(this._ui.intent(v,[fuzzWord.split(" ").slice(f).join(" ")],thresh)) res = true;
                 }
             }
             return !res;
         });
+    }
+
+    private async _printOrder(orders: PBOrder[], previewOrder=false) {
+        for (let i=0; i<orders.length; i++) {
+            this._ui.div();
+            if (previewOrder) await this._ui.print("Order Preview");
+            else await this._ui.print("Order No. "+String(orders[i].orderID));
+            await this._ui.print(" "+this._fancyTime(new Date(orders[i].date)));
+            this._ui.div("-");
+            // PRINT COURSES
+            await this._ui.print("Courses:                Cost ($)");
+            if(orders[i].main.length>0)await this._ui.print(" Mains:");
+            for (let item of orders[i].main) {
+                await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+String(item.cost).padStart(5," "));
+            }
+            if(orders[i].dessert.length>0)await this._ui.print(" Desserts:");
+            for (let item of orders[i].dessert) {
+                await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+String(item.cost).padStart(5," "));
+            }
+            if(orders[i].drink.length>0)await this._ui.print(" Drinks:");
+            for (let item of orders[i].drink) {
+                await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+String(item.cost).padStart(5," "));
+            }
+            // PRINT TOTAL
+            this._ui.div("-");
+            await this._ui.print("Total:"+"                "+("$"+String(orders[i].total)).padStart(10," "));
+        }
     }
 }
 export default IBPubBot;
