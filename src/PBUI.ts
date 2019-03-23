@@ -6,13 +6,18 @@
 import Readline from "readline";
 import Fuzzball from "fuzzball";
 
-export class PBUserInterface {
+const TTS_ENABLE = false;
 
-    public readonly ttsEnabled: boolean = false;
+export class PBUI {
+
+    public readonly ttsEnabled: boolean = TTS_ENABLE;
     private _pinnedMessages: string[] = [];
 
     public input(question: string) {
         return new Promise<string>( resolve => {
+            if (this.ttsEnabled) {
+
+            }
             let rl = Readline.createInterface(process.stdin, process.stdout);
             rl.setPrompt(question+" : ");
             rl.prompt();
@@ -29,17 +34,19 @@ export class PBUserInterface {
     }
 
     public print(message: string): void {
+        if (this.ttsEnabled) {
+
+        }
         console.log(message);
     }
 
-    public intent(phrase: string, answers: Array<string>, threshold: number = 50): Promise<boolean> {
-        return new Promise<boolean>( resolve => {
-            let fuz = Fuzzball.extract(phrase, answers);
-            if (fuz[0]) {
-                if (fuz[0][1] >= threshold) resolve(true);
-                else resolve(false);
-            }
-        });
+    public intent(phrase: string, answers: Array<string>, threshold: number = 50): boolean {
+        let fuz = Fuzzball.extract(phrase, answers);
+        if (fuz[0]) {
+            if (fuz[0][1] >= threshold) return(true);
+            else return(false);
+        }
+        return false;
     }
     
     public div(): void {
@@ -54,7 +61,6 @@ export class PBUserInterface {
         });
     }*/
 }
-export default PBUserInterface;
 
 
 /*

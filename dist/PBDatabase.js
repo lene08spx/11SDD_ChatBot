@@ -24,4 +24,3 @@ class PBDatabase {
     }
 }
 exports.PBDatabase = PBDatabase;
-exports.default = PBDatabase;

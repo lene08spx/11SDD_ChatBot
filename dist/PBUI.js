@@ -9,9 +9,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const readline_1 = __importDefault(require("readline"));
 const fuzzball_1 = __importDefault(require("fuzzball"));
-class PBUserInterface {
+const TTS_ENABLE = false;
+class PBUI {
     constructor() {
-        this.ttsEnabled = false;
+        this.ttsEnabled = TTS_ENABLE;
         this._pinnedMessages = [];
         /*
         public pin(message: string): Promise<void> {
@@ -45,22 +46,20 @@ class PBUserInterface {
         console.log(message);
     }
     intent(phrase, answers, threshold = 50) {
-        return new Promise(resolve => {
-            let fuz = fuzzball_1.default.extract(phrase, answers);
-            if (fuz[0]) {
-                if (fuz[0][1] >= threshold)
-                    resolve(true);
-                else
-                    resolve(false);
-            }
-        });
+        let fuz = fuzzball_1.default.extract(phrase, answers);
+        if (fuz[0]) {
+            if (fuz[0][1] >= threshold)
+                return (true);
+            else
+                return (false);
+        }
+        return false;
     }
     div() {
         console.log("================================");
     }
 }
-exports.PBUserInterface = PBUserInterface;
-exports.default = PBUserInterface;
+exports.PBUI = PBUI;
 /*
 // YAY!!!
 let list = ["I am ok", "yes I am","yes","ok"]

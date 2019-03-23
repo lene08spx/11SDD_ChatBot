@@ -12,7 +12,7 @@ export class PBDatabase {
         });
     }
 
-    public query (sql: string, ...params: any[]): Promise<{}[]> {
+    public query (sql: string, ...params: any[]): Promise<any[]> {
         return new Promise(resolve => {
             this._db.all(sql, params, (err, rows)=>{
                 if (err) console.log(err);
@@ -21,4 +21,3 @@ export class PBDatabase {
         });
     }
 }
-export default PBDatabase;
