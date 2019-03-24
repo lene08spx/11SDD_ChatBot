@@ -14,16 +14,46 @@ export class PBUser {
 };
 
 export namespace PBFuzzy {
-    export const MATCH_YES = ["y","yes please", "for sure", "sure", "sounds good", "yes", "yep", "bloody oath", "yea", "yes please", "okey dokey"];
+    export const MATCH_YES = ["y","yes please", "for sure", "sure", "sounds good", "yes", "yep", "bloody oath", "yea", "yes please", "okey dokey","okay","ok"];
     export const MATCH_NO  = ["n","nah", "no thanks", "nope", "nup", "no", "no way"];
     export const MATCH_QUIT = ["quit","stop","halt","exit","cancel"];
-    export const MATCH_MYNAME = ["my name is", "my name", "i am called", "i called", "i am", "je m'appelle", "Mi nombre", "Mi nombre es", "soy"];
+    export const MATCH_MYNAME = ["my name is", "my name", "i am called", "i called", "i am", "je m'appelle", "Mi nombre", "Mi nombre es", "soy", "me nombre", "me"];
+    export const MATCH_MENU = ["menu","list","give menu","see menu","have menu","see the menu"];
+    export const MATCH_ORDER = ["order","i want","i want to order","please can i have","may i have","i would like","i would like to order","like to order","to order","order a","i'd like to order","have you got","please"];
+    export const MATCH_PREVIEW = ["preview","show","cart","view","view cart","review"]
 };
 
 export interface PBMenuItem {
     id: number;
     name: string;
     cost: number;
+};
+export interface PBMenuViewRecord {
+    itemID: number;
+    itemName: string;
+    itemCost: number;
+    itemType: PBItemType;
+}
+export class PBMenu {
+
+    public main: PBMenuItem[] = [];
+    public dessert: PBMenuItem[] = [];
+    public drink: PBMenuItem[] = [];
+
+    constructor (menuViewRecords: PBMenuViewRecord[]) {
+        for (let menuItem of menuViewRecords) {
+            this[menuItem.itemType].push({id:menuItem.itemID,name:menuItem.itemName,cost:menuItem.itemCost});
+        }
+        let t: PBItemType[] = ["main","dessert","drink"];
+        for (let x of t) {
+            this[x].sort(function(a, b) {
+                var textA = a.name.toUpperCase();
+                var textB = b.name.toUpperCase();
+                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+            });
+        }
+    }
+
 };
 
 export interface PBOrdersViewRecord {
@@ -50,6 +80,10 @@ export class PBOrder {
         for (let i=0;i<this.dessert.length;i++)total+=this.dessert[i].cost;
         for (let i=0;i<this.drink.length;i++)total+=this.drink[i].cost;
         return total;        
+    }
+
+    public get size() {
+        return this.main.length+this.dessert.length+this.drink.length;
     }
 };
 export class PBOrderArray extends Array<PBOrder> {
