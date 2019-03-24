@@ -65,6 +65,7 @@ export class IBPubBot {
 			await this._ui.print(
 				"Thank You, Have a nice day."
 			);
+			await this._ui.sleep(3000);
 			return;
 		}
 
@@ -76,6 +77,7 @@ export class IBPubBot {
 			await this._ui.print(
 				"Thank You, Have a nice day."
 			);
+			await this._ui.sleep(3000);
 			return;
 		}
 		// check if has my name is fuzzy
@@ -224,9 +226,12 @@ export class IBPubBot {
 				// then confirm 100%
 				// then saveorder outside loop
 		}
+		orderToMake.userID = this._user.userID;
+		orderToMake.date = new Date().toISOString();
+		await this._saveOrder(orderToMake);
 
-		console.log("IMPLEMENT ORDER SAVING");
-		//saveOrder()
+		await this._ui.print("Thank you for ordering. See you round like a ristole.");
+		await this._ui.sleep(3000);
 	}
 
 	  /////////////////////
@@ -582,6 +587,20 @@ export class IBPubBot {
 		min = Math.ceil(min);
 		max = Math.floor(max);
 		return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
-	  }
+	}
+
+	private async _saveOrder(order: PBOrder) {
+		await this._db.query("INSERT INTO Orders (userID, orderDate) VALUES (?, ?)", order.userID, order.date);
+		let lastOrderID: number = (await this._db.query("SELECT last_insert_rowid() AS last_rowid;"))[0]["last_rowid"];
+		for (let i=0;i<order.main.length;i++) {
+			await this._db.query("INSERT INTO OrderItems (itemID, orderID) VALUES (?, ?)", order.main[i].id, lastOrderID);
+		}
+		for (let i=0;i<order.dessert.length;i++) {
+			await this._db.query("INSERT INTO OrderItems (itemID, orderID) VALUES (?, ?)", order.dessert[i].id, lastOrderID);
+		}
+		for (let i=0;i<order.drink.length;i++) {
+			await this._db.query("INSERT INTO OrderItems (itemID, orderID) VALUES (?, ?)", order.drink[i].id, lastOrderID);
+		}
+	}
 }
 export default IBPubBot;

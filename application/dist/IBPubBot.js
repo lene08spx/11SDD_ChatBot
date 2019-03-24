@@ -40,6 +40,7 @@ class IBPubBot {
         //================================
         if (!(await this._userWantsToOrder())) {
             await this._ui.print("Thank You, Have a nice day.");
+            await this._ui.sleep(3000);
             return;
         }
         //================================
@@ -48,6 +49,7 @@ class IBPubBot {
         this._user = await this._getUser();
         if (!this._user) {
             await this._ui.print("Thank You, Have a nice day.");
+            await this._ui.sleep(3000);
             return;
         }
         // check if has my name is fuzzy
@@ -192,8 +194,11 @@ class IBPubBot {
             // then confirm 100%
             // then saveorder outside loop
         }
-        console.log("IMPLEMENT ORDER SAVING");
-        //saveOrder()
+        orderToMake.userID = this._user.userID;
+        orderToMake.date = new Date().toISOString();
+        await this._saveOrder(orderToMake);
+        await this._ui.print("Thank you for ordering. See you round like a ristole.");
+        await this._ui.sleep(3000);
     }
     /////////////////////
     // PUB BOT METHODS //
@@ -533,6 +538,19 @@ class IBPubBot {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+    }
+    async _saveOrder(order) {
+        await this._db.query("INSERT INTO Orders (userID, orderDate) VALUES (?, ?)", order.userID, order.date);
+        let lastOrderID = (await this._db.query("SELECT last_insert_rowid() AS last_rowid;"))[0]["last_rowid"];
+        for (let i = 0; i < order.main.length; i++) {
+            await this._db.query("INSERT INTO OrderItems (itemID, orderID) VALUES (?, ?)", order.main[i].id, lastOrderID);
+        }
+        for (let i = 0; i < order.dessert.length; i++) {
+            await this._db.query("INSERT INTO OrderItems (itemID, orderID) VALUES (?, ?)", order.dessert[i].id, lastOrderID);
+        }
+        for (let i = 0; i < order.drink.length; i++) {
+            await this._db.query("INSERT INTO OrderItems (itemID, orderID) VALUES (?, ?)", order.drink[i].id, lastOrderID);
+        }
     }
 }
 exports.IBPubBot = IBPubBot;
