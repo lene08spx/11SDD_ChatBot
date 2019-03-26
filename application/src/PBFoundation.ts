@@ -85,6 +85,10 @@ export class PBOrder {
     public get size() {
         return this.main.length+this.dessert.length+this.drink.length;
     }
+
+    public hasItemAlready(menuItem: PBMenuItem) {
+        return (this.main.map(v=>v.id).includes(menuItem.id) || this.dessert.map(v=>v.id).includes(menuItem.id) || this.drink.map(v=>v.id).includes(menuItem.id));
+    }
 };
 export class PBOrderArray extends Array<PBOrder> {
     public hasOrderID(orderID: number): boolean {

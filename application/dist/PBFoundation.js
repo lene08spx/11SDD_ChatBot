@@ -64,6 +64,9 @@ class PBOrder {
     get size() {
         return this.main.length + this.dessert.length + this.drink.length;
     }
+    hasItemAlready(menuItem) {
+        return (this.main.map(v => v.id).includes(menuItem.id) || this.dessert.map(v => v.id).includes(menuItem.id) || this.drink.map(v => v.id).includes(menuItem.id));
+    }
 }
 exports.PBOrder = PBOrder;
 ;

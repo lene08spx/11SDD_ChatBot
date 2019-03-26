@@ -156,7 +156,7 @@ export class IBPubBot {
 					await this._printOrders([orderToMake],true);
 					continue;
 				}
-				// test to see if it exists
+				// test to see if the item exists and then add
 				let likeItems: PBMenuViewRecord[] = await this._db.query("SELECT * FROM MenuView WHERE LOWER(itemName) LIKE LOWER(?)","%"+orderName+"%");
 				if (likeItems.length > 1) {
 					//wantedMenu = false;
@@ -182,6 +182,11 @@ export class IBPubBot {
 					if (chosen > 0) {
 						// confirm they want that and add
 						chosen--;
+						if (orderToMake.hasItemAlready({
+							id: likeItems[chosen].itemID,
+							name: likeItems[chosen].itemName,
+							cost: likeItems[chosen].itemCost
+						})){await this._ui.print("You have already ordered "+likeItems[chosen].itemName)}
 						let wantsToOrder = await this._getYesNo("Would you like to order "+likeItems[chosen].itemName+", for $"+String(likeItems[chosen].itemCost)+"?");
 						if (wantsToOrder) {
 							await this._ui.print("Added "+likeItems[chosen].itemName+" to your order.\n");
@@ -196,6 +201,11 @@ export class IBPubBot {
 				} else if (likeItems.length === 1) {
 					//wantedMenu = false;
 					// confirm that they want order and add
+					if (orderToMake.hasItemAlready({
+						id: likeItems[0].itemID,
+						name: likeItems[0].itemName,
+						cost: likeItems[0].itemCost
+					})){await this._ui.print("You have already ordered "+likeItems[0].itemName)}
 					let wantsToOrder = await this._getYesNo("Would you like to order "+likeItems[0].itemName+", for $"+String(likeItems[0].itemCost)+"?");
 					if (wantsToOrder) {
 						await this._ui.print("Added "+likeItems[0].itemName+" to your order.\n");
@@ -409,7 +419,7 @@ export class IBPubBot {
 			this._ui.div();
 
 			if (previewOrder) await this._ui.print("Order Review");
-			else await this._ui.print("Order No. "+String(orders[i].orderID));
+			else await this._ui.print("Order ID. "+String(orders[i].orderID));
 
 			if (!previewOrder) await this._ui.print(" "+this._fancyTime(new Date(orders[i].date)));
 			//else await this._ui.print(" "+this._fancyTime(new Date(orders[i].date)));
