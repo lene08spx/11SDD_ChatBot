@@ -51,6 +51,16 @@ class PBOrder {
         this.dessert = [];
         this.drink = [];
     }
+    sort() {
+        let t = ["main", "dessert", "drink"];
+        for (let x of t) {
+            this[x].sort(function (a, b) {
+                var textA = a.name.toUpperCase();
+                var textB = b.name.toUpperCase();
+                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+            });
+        }
+    }
     get total() {
         let total = 0;
         for (let i = 0; i < this.main.length; i++)

@@ -74,6 +74,17 @@ export class PBOrder {
     public dessert: PBMenuItem[] = [];
     public drink: PBMenuItem[] = [];
     
+    public sort() {
+        let t: PBItemType[] = ["main","dessert","drink"];
+        for (let x of t) {
+            this[x].sort(function(a, b) {
+                var textA = a.name.toUpperCase();
+                var textB = b.name.toUpperCase();
+                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+            });
+        }
+    }
+
     public get total() {
         let total = 0;
         for (let i=0;i<this.main.length;i++)total+=this.main[i].cost;

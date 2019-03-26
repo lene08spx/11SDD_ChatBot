@@ -12,6 +12,8 @@ import {
 	PBMenu
 } from "./PBFoundation";
 
+// TODO -> ADD example ... (3x) Hot Chips
+
 /*
 	BOT CODE
 */
@@ -155,6 +157,9 @@ export class IBPubBot {
 				} else if (orderName === "@!PREVIEW") {
 					await this._printOrders([orderToMake],true);
 					continue;
+				} else if (orderName === "@!PREFIX") {
+					await this._ui.print('You need to say "I would like to order" before your order.')
+					continue;
 				}
 				// test to see if the item exists and then add
 				let likeItems: PBMenuViewRecord[] = await this._db.query("SELECT * FROM MenuView WHERE LOWER(itemName) LIKE LOWER(?)","%"+orderName+"%");
@@ -282,6 +287,7 @@ export class IBPubBot {
 			let userAnswer = (await this._ui.input(
 				"May I ask, what is your name?"
 			));
+			let userIsNull = false;
 //            if (this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT),80) resolve(null);
 			//this._stringIncludesTextFromArray(userAnswer,PBFuzzy.MATCH_MYNAME);
 			//console.log(this._getNonFuzzyWords(userAnswer,PBFuzzy.MATCH_MYNAME));
@@ -300,7 +306,8 @@ export class IBPubBot {
 					));
 				} else if (this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT, thresh)) {
 					resolve(null);
-					return;
+					userIsNull = true;
+					//return;
 				} else {
 					// ask if that is there name
 					/*await this._ui.print(
@@ -337,18 +344,24 @@ export class IBPubBot {
 			//let userName = userAnswer.slice(userAnswer.toLowerCase().indexOf("my name is")+10).trim();
 			//console.log(userAnswer);
 			let userName = this._getNonFuzzyWords(userAnswer,PBFuzzy.MATCH_MYNAME).join(" ");
+			//console.log("@@@",userName,userName.length);
+			
 			if (userName.length === 0) {
 				//console.log("%%%%%");
+				await this._ui.print("Sorry I didn't understand that.");
 				if (this._getUser() === null) resolve(null);
+				userIsNull = true;
+			} else if (!userIsNull) {
+				let userValidated = (await this._getYesNo(
+					"So, your name is \""+new PBUser(userName).prettyName+"\"?"
+				));
+				if (!userValidated) {
+					resolve(this._getUser());
+					//return;
+				}
+				resolve(new PBUser(userName));
 			}
-			let userValidated = (await this._getYesNo(
-				"So, your name is \""+new PBUser(userName).prettyName+"\"?"
-			));
-			if (!userValidated) {
-				resolve(this._getUser());
-			}
-			//console.log("@@@",userName);
-			resolve(new PBUser(userName));
+			//return;
 		});
 	}
 
@@ -430,14 +443,17 @@ export class IBPubBot {
 			// PRINT COURSES
 			await this._ui.print("Courses:                Cost ($)");
 			if(orders[i].main.length>0)await this._ui.print(" Mains:");
+			let numOfItem = 0;
 			for (let item of orders[i].main) {
 				await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+("$"+String(item.cost)).padStart(5," "));
 			}
 			if(orders[i].dessert.length>0)await this._ui.print(" Desserts:");
+			numOfItem = 0;
 			for (let item of orders[i].dessert) {
 				await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+("$"+String(item.cost)).padStart(5," "));
 			}
 			if(orders[i].drink.length>0)await this._ui.print(" Drinks:");
+			numOfItem = 0;
 			for (let item of orders[i].drink) {
 				await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+("$"+String(item.cost)).padStart(5," "));
 			}
@@ -498,14 +514,15 @@ export class IBPubBot {
 			// CODE FOR JUST THE FOOD NAME AND EXCLUDE PREFIX
 			let thresh = 70;
 			let userAnswer = (await this._ui.input(
-				"Enter the name of the item you want to order. Enter \"menu\" to see the menu. Enter \"review\" to review your order.\n"
+				"Enter \"I would like\" before the name of the item you want to order. Enter \"menu\" to see the menu. Enter \"review\" to review your order.\n"
 			));
 			if (this._ui.intent(userAnswer,PBFuzzy.MATCH_MENU,thresh)) {
 				resolve("@!MENU");
 			} else if (this._ui.intent(userAnswer,PBFuzzy.MATCH_PREVIEW,thresh)) {
 				resolve("@!PREVIEW");
 			} else if (!this._stringIncludesTextFromArray(userAnswer,PBFuzzy.MATCH_ORDER,50)) {
-				resolve(userAnswer);
+				//resolve(userAnswer);
+				resolve("@!PREFIX");
 			} else {
 				let userOrderName = this._getNonFuzzyWords(userAnswer,PBFuzzy.MATCH_ORDER).join(" ").toLowerCase();
 				if (userOrderName === "" && userAnswer === "") {
@@ -514,7 +531,11 @@ export class IBPubBot {
 				} else if (userOrderName === "") {
 					resolve("@!PREVIEW");
 				} else {
-					resolve(userOrderName);
+					if (this._getNonFuzzyWords(userAnswer,PBFuzzy.MATCH_ORDER).join(" ").toLowerCase() === userAnswer) {
+						resolve("@!PREFIX")
+					} else {
+						resolve(userOrderName);
+					}
 				}
 			}
 			/*

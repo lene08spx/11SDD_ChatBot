@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const PBUI_1 = require("./PBUI");
 const PBFoundation_1 = require("./PBFoundation");
+// TODO -> ADD example ... (3x) Hot Chips
 /*
     BOT CODE
 */
@@ -119,6 +120,10 @@ class IBPubBot {
                 }
                 else if (orderName === "@!PREVIEW") {
                     await this._printOrders([orderToMake], true);
+                    continue;
+                }
+                else if (orderName === "@!PREFIX") {
+                    await this._ui.print('You need to say "I would like to order" before your order.');
                     continue;
                 }
                 // test to see if the item exists and then add
@@ -243,6 +248,7 @@ class IBPubBot {
         return new Promise(async (resolve) => {
             let thresh = 80;
             let userAnswer = (await this._ui.input("May I ask, what is your name?"));
+            let userIsNull = false;
             //            if (this._ui.intent(userAnswer,PBFuzzy.MATCH_QUIT),80) resolve(null);
             //this._stringIncludesTextFromArray(userAnswer,PBFuzzy.MATCH_MYNAME);
             //console.log(this._getNonFuzzyWords(userAnswer,PBFuzzy.MATCH_MYNAME));
@@ -256,7 +262,8 @@ class IBPubBot {
                 }
                 else if (this._ui.intent(userAnswer, PBFoundation_1.PBFuzzy.MATCH_QUIT, thresh)) {
                     resolve(null);
-                    return;
+                    userIsNull = true;
+                    //return;
                 }
                 else {
                     // ask if that is there name
@@ -292,17 +299,23 @@ class IBPubBot {
             //let userName = userAnswer.slice(userAnswer.toLowerCase().indexOf("my name is")+10).trim();
             //console.log(userAnswer);
             let userName = this._getNonFuzzyWords(userAnswer, PBFoundation_1.PBFuzzy.MATCH_MYNAME).join(" ");
+            //console.log("@@@",userName,userName.length);
             if (userName.length === 0) {
                 //console.log("%%%%%");
+                await this._ui.print("Sorry I didn't understand that.");
                 if (this._getUser() === null)
                     resolve(null);
+                userIsNull = true;
             }
-            let userValidated = (await this._getYesNo("So, your name is \"" + new PBFoundation_1.PBUser(userName).prettyName + "\"?"));
-            if (!userValidated) {
-                resolve(this._getUser());
+            else if (!userIsNull) {
+                let userValidated = (await this._getYesNo("So, your name is \"" + new PBFoundation_1.PBUser(userName).prettyName + "\"?"));
+                if (!userValidated) {
+                    resolve(this._getUser());
+                    //return;
+                }
+                resolve(new PBFoundation_1.PBUser(userName));
             }
-            //console.log("@@@",userName);
-            resolve(new PBFoundation_1.PBUser(userName));
+            //return;
         });
     }
     _getOrders(user) {
@@ -385,16 +398,19 @@ class IBPubBot {
             await this._ui.print("Courses:                Cost ($)");
             if (orders[i].main.length > 0)
                 await this._ui.print(" Mains:");
+            let numOfItem = 0;
             for (let item of orders[i].main) {
                 await this._ui.print("   " + item.name + "                        ".slice(item.name.length) + ("$" + String(item.cost)).padStart(5, " "));
             }
             if (orders[i].dessert.length > 0)
                 await this._ui.print(" Desserts:");
+            numOfItem = 0;
             for (let item of orders[i].dessert) {
                 await this._ui.print("   " + item.name + "                        ".slice(item.name.length) + ("$" + String(item.cost)).padStart(5, " "));
             }
             if (orders[i].drink.length > 0)
                 await this._ui.print(" Drinks:");
+            numOfItem = 0;
             for (let item of orders[i].drink) {
                 await this._ui.print("   " + item.name + "                        ".slice(item.name.length) + ("$" + String(item.cost)).padStart(5, " "));
             }
@@ -459,7 +475,8 @@ class IBPubBot {
                 resolve("@!PREVIEW");
             }
             else if (!this._stringIncludesTextFromArray(userAnswer, PBFoundation_1.PBFuzzy.MATCH_ORDER, 50)) {
-                resolve(userAnswer);
+                //resolve(userAnswer);
+                resolve("@!PREFIX");
             }
             else {
                 let userOrderName = this._getNonFuzzyWords(userAnswer, PBFoundation_1.PBFuzzy.MATCH_ORDER).join(" ").toLowerCase();
@@ -471,7 +488,12 @@ class IBPubBot {
                     resolve("@!PREVIEW");
                 }
                 else {
-                    resolve(userOrderName);
+                    if (this._getNonFuzzyWords(userAnswer, PBFoundation_1.PBFuzzy.MATCH_ORDER).join(" ").toLowerCase() === userAnswer) {
+                        resolve("@!PREFIX");
+                    }
+                    else {
+                        resolve(userOrderName);
+                    }
                 }
             }
             /*
