@@ -14,7 +14,7 @@ import ChildProcess from "child_process";
 //import GoogleTts = require("google-tts-api");
 import Say = require("say");
 
-const TTS_ENABLE = false;
+const TTS_ENABLE = true;
 const TTS_SPEED = 1.5;
 const TTS_SLEEP_MULTIPLILER = 0.081; // higher for cloud tts
 const TTS_LANG = "en-au"; //https://cloud.google.com/speech-to-text/docs/languages

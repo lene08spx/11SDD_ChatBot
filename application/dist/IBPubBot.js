@@ -94,7 +94,7 @@ class IBPubBot {
                 // ready to fulfill
                 // you now have 3 orders, would you like to order anything else?
                 await this._ui.print("You now have " + String(orderToMake.size) + " items ordered.");
-                if (await this._getYesNo("Would you like to order anything else?")) {
+                if ((await this._getYesNo("Would you like to order anything else?"))) {
                     // dont do anything and allow the user to keep ordering
                 }
                 else {
@@ -241,7 +241,9 @@ class IBPubBot {
                     }
                 }
             }
-            resolve(true);
+            else {
+                resolve(true);
+            }
         });
     }
     async _getUser() {
@@ -398,19 +400,22 @@ class IBPubBot {
             await this._ui.print("Courses:                Cost ($)");
             if (orders[i].main.length > 0)
                 await this._ui.print(" Mains:");
-            let numOfItem = 0;
+            //let numOfItem = 1;
+            //let lastItemId = -1;
             for (let item of orders[i].main) {
                 await this._ui.print("   " + item.name + "                        ".slice(item.name.length) + ("$" + String(item.cost)).padStart(5, " "));
             }
             if (orders[i].dessert.length > 0)
                 await this._ui.print(" Desserts:");
-            numOfItem = 0;
+            //numOfItem = 1;
+            //lastItemId = -1;
             for (let item of orders[i].dessert) {
                 await this._ui.print("   " + item.name + "                        ".slice(item.name.length) + ("$" + String(item.cost)).padStart(5, " "));
             }
             if (orders[i].drink.length > 0)
                 await this._ui.print(" Drinks:");
-            numOfItem = 0;
+            //numOfItem = 1;
+            //lastItemId = -1;
             for (let item of orders[i].drink) {
                 await this._ui.print("   " + item.name + "                        ".slice(item.name.length) + ("$" + String(item.cost)).padStart(5, " "));
             }
@@ -460,14 +465,16 @@ class IBPubBot {
                     }
                 }
             }
-            resolve(true);
+            else {
+                resolve(true);
+            }
         });
     }
     async _getUserOrderName() {
         return new Promise(async (resolve) => {
             // CODE FOR JUST THE FOOD NAME AND EXCLUDE PREFIX
             let thresh = 70;
-            let userAnswer = (await this._ui.input("Enter the name of the item you want to order. Enter \"menu\" to see the menu. Enter \"review\" to review your order.\n"));
+            let userAnswer = (await this._ui.input("Enter \"I would like\" before the name of the item you want to order. Enter \"menu\" to see the menu. Enter \"review\" to review your order.\n"));
             if (this._ui.intent(userAnswer, PBFoundation_1.PBFuzzy.MATCH_MENU, thresh)) {
                 resolve("@!MENU");
             }

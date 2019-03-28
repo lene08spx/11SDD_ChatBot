@@ -131,7 +131,7 @@ export class IBPubBot {
 				// ready to fulfill
 				// you now have 3 orders, would you like to order anything else?
 				await this._ui.print("You now have "+String(orderToMake.size)+" items ordered.");
-				if (await this._getYesNo("Would you like to order anything else?")) {
+				if ((await this._getYesNo("Would you like to order anything else?"))) {
 					// dont do anything and allow the user to keep ordering
 				} else {
 					// prepare to confirm order
@@ -276,8 +276,9 @@ export class IBPubBot {
 						resolve(false);
 					}
 				}
+			} else {
+				resolve(true);
 			}
-			resolve(true);
 		});
 	}
 
@@ -443,17 +444,20 @@ export class IBPubBot {
 			// PRINT COURSES
 			await this._ui.print("Courses:                Cost ($)");
 			if(orders[i].main.length>0)await this._ui.print(" Mains:");
-			let numOfItem = 0;
+			//let numOfItem = 1;
+			//let lastItemId = -1;
 			for (let item of orders[i].main) {
 				await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+("$"+String(item.cost)).padStart(5," "));
 			}
 			if(orders[i].dessert.length>0)await this._ui.print(" Desserts:");
-			numOfItem = 0;
+			//numOfItem = 1;
+			//lastItemId = -1;
 			for (let item of orders[i].dessert) {
 				await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+("$"+String(item.cost)).padStart(5," "));
 			}
 			if(orders[i].drink.length>0)await this._ui.print(" Drinks:");
-			numOfItem = 0;
+			//numOfItem = 1;
+			//lastItemId = -1;
 			for (let item of orders[i].drink) {
 				await this._ui.print("   "+item.name+"                        ".slice(item.name.length)+("$"+String(item.cost)).padStart(5," "));
 			}
@@ -504,8 +508,9 @@ export class IBPubBot {
 						resolve(false);
 					}
 				}
+			} else {
+				resolve(true);
 			}
-			resolve(true);
 		});
 	}
 
